@@ -68,7 +68,7 @@ def delete_post(id: int):
         session.commit()
     
 
-@app.put("/posts/{id}", status_code=status.HTTP_200_OK)
+@app.put("/posts/{id}", status_code=status.HTTP_200_OK, response_model=PostPublic)
 def update_post(id: int, post: PostUpdate):
 
     with Session(engine) as session:
