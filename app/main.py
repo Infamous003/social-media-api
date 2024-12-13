@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from .models import Post, PostPublic, PostCreate, PostUpdate, User, UserCreate, UserUpdate, UserPublic
 from .database import init_db, engine
 from contextlib import asynccontextmanager
+from bcrypt import hashpw, gensalt
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -94,9 +95,9 @@ def create_user(user: UserCreate):
 
     if not user.username or not user.password or not user.email:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="username, email and password are required")
-    
+    user.password = hashpw(user.password.encode('utf-8'), gensalt(14))
     new_user = User(**user.model_dump())
-    
+
     with Session(engine) as session:
         session.add(new_user)
         session.commit()
