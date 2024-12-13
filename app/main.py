@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Response
 from sqlmodel import Session, select
-from .models import Post, PostPublic, PostCreate, PostUpdate
+from .models import Post, PostPublic, PostCreate, PostUpdate, User, UserCreate, UserUpdate, UserPublic
 from .database import init_db, engine
 from contextlib import asynccontextmanager
 
@@ -67,7 +67,6 @@ def delete_post(id: int):
         session.delete(post)
         session.commit()
     
-
 @app.put("/posts/{id}", status_code=status.HTTP_200_OK, response_model=PostPublic)
 def update_post(id: int, post: PostUpdate):
 
@@ -87,3 +86,62 @@ def update_post(id: int, post: PostUpdate):
         session.refresh(post_to_update)
 
         return post_to_update
+    
+# ----------Users----------
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
+def create_user(user: UserCreate):
+
+    if not user.username or not user.password or not user.email:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="username, email and password are required")
+    
+    new_user = User(**user.model_dump())
+    
+    with Session(engine) as session:
+        session.add(new_user)
+        session.commit()
+        session.refresh(new_user)
+    return new_user
+
+@app.get("/users", status_code=status.HTTP_200_OK, response_model=list[UserPublic])
+def get_users():
+    with Session(engine) as session:
+        statement = select(User)
+        users = session.exec(statement).fetchall()
+        return users
+    
+@app.get("/users/{id}", status_code=status.HTTP_200_OK, response_model=UserPublic)
+def get_user(id: int):
+    with Session(engine) as session:
+        statement = select(User).where(User.id == id)
+        user = session.exec(statement).one_or_none()
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id: {id} not found")
+        return user   
+    
+@app.delete("/users/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(id: int):
+    with Session(engine) as session:
+        statement = select(User).where(User.id == id)
+        user = session.exec(statement).one_or_none()
+        
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id: {id} not found")
+        session.delete(user)
+        session.commit()
+
+@app.put("/users/{id}", status_code=status.HTTP_200_OK, response_model=UserPublic)
+def update_user(id: int, user: UserUpdate):
+    with Session(engine) as session:
+        statement = select(User).where(User.id == id)
+        user_to_update = session.exec(statement).one_or_none()
+
+        if not user_to_update:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id: {id} not found")
+        user_data = user.model_dump(exclude_unset=True)
+        user_to_update.sqlmodel_update(user_data)
+        session.add(user_to_update)
+        session.commit()
+        session.refresh(user_to_update)
+        return user_to_update
