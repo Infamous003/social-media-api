@@ -1,6 +1,6 @@
-from fastapi import FastAPI, status, HTTPException, Response
+from fastapi import FastAPI, status, HTTPException
 from sqlmodel import Session, select
-from .models import Post, PostPublic, PostCreate, PostUpdate, User, UserCreate, UserUpdate, UserPublic
+from .models import Post, PostPublic, PostCreate, PostUpdate, UserUpdate, User, UserPublic
 from .database import init_db, engine
 from contextlib import asynccontextmanager
 from bcrypt import hashpw, gensalt
@@ -91,11 +91,11 @@ def update_post(id: int, post: PostUpdate):
 # ----------Users----------
 
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
-def create_user(user: UserCreate):
+def create_user(user: User):
 
     if not user.username or not user.password or not user.email:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="username, email and password are required")
-    user.password = hashpw(user.password, gensalt(14))
+    user.password = hashpw(user.password.encode('utf-8'), gensalt(14))
     new_user = User(**user.model_dump())
 
     with Session(engine) as session:
@@ -140,7 +140,8 @@ def update_user(id: int, user: UserUpdate):
 
         if not user_to_update:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id: {id} not found")
-        user.password = hashpw(user.password.encode('utf-8'), gensalt(14))
+        if user.password:
+            user.password = hashpw(user.password.encode("utf-8"), gensalt(14))
         user_data = user.model_dump(exclude_unset=True)
         user_to_update.sqlmodel_update(user_data)
         session.add(user_to_update)

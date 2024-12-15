@@ -29,15 +29,12 @@ class PostUpdate(PostBase):
 class UserBase(SQLModel):
     username: str = Field(nullable=False)
     email: EmailStr = Field(nullable=False, unique=True)
-    password: bytes = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.now, nullable=False)
 
 class User(UserBase, table=True):
     __tablename__="users"
     id: int | None = Field(primary_key=True, default=None)
-
-class UserCreate(UserBase):
-    pass
+    password: bytes = Field(nullable=False)
 
 class UserPublic(UserBase):
     id: int
