@@ -95,7 +95,7 @@ def create_user(user: UserCreate):
 
     if not user.username or not user.password or not user.email:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="username, email and password are required")
-    user.password = hashpw(user.password.encode('utf-8'), gensalt(14))
+    user.password = hashpw(user.password, gensalt(14))
     new_user = User(**user.model_dump())
 
     with Session(engine) as session:

@@ -29,7 +29,7 @@ class PostUpdate(PostBase):
 class UserBase(SQLModel):
     username: str = Field(nullable=False)
     email: EmailStr = Field(nullable=False, unique=True)
-    password: str = Field(nullable=False)
+    password: bytes = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.now, nullable=False)
 
 class User(UserBase, table=True):
