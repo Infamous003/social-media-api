@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel, create_engine
 
 engine = create_engine("mysql+mysqlconnector://root:itsokay03@localhost/MyDB")
 

@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime
-from pydantic import EmailStr, BaseModel
+from pydantic import EmailStr
 
 class PostBase(SQLModel):
     title: str = Field(nullable=False)
