@@ -140,6 +140,7 @@ def update_user(id: int, user: UserUpdate):
 
         if not user_to_update:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id: {id} not found")
+        user.password = hashpw(user.password.encode('utf-8'), gensalt(14))
         user_data = user.model_dump(exclude_unset=True)
         user_to_update.sqlmodel_update(user_data)
         session.add(user_to_update)
